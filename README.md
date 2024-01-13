@@ -1,36 +1,45 @@
-Микросервисы FastAPI
-Описание проекта
+# Микросервисы FastAPI
+
+## Описание проекта
 Проект представляет собой несколько взаимодействующих между собой сервисов, практически все функции в них асинхронные. Это вариация работы веб-приложения магазина мебели.
 
-Все сервисы работают через docker-compose. Документация доступна по адресу http://127.0.0.1:8000/docs после запуска приложения. GraphQL сервис доступен по адресу http://127.0.0.1:8000/graphql.
+Все сервисы работают через docker-compose. 
+* Документация: http://127.0.0.1:8000/docs после запуска приложения.
+* GraphQL сервис: http://127.0.0.1:8000/graphql.
 
-Структура проекта
+## Структура проекта
 Product Service
 В данном сервисе можно создавать/редактировать/удалять продукты. Также есть возможность просматривать все имеющиеся продукты (в любом диапазоне) и какие-либо конкретные по их уникальному ID.
 
-Описание функций: CRUD операции с продуктами, подключение к БД Postgresql+asyncpg, использование SqlAlchemy, для миграций Alembic.
+Описание функций: 
+CRUD операции с продуктами, подключение к БД Postgresql+asyncpg, использование SqlAlchemy, для миграций Alembic.
 Продукт имеет следующие поля:
 
-product_id: UUID
-name: str
-weight: float
-description: str
+* product_id: UUID
+* name: str
+* weight: float
+* description: str
+
+  
 Order Service
 Основной сервис для создания заказа. Заказ создается путем взятия реального продукта со склада, при оформлении заказа товар резервируется на сервисе склада и отправляется сообщение о созданном заказе в Kafka, откуда затем считывается другим сервисом. Если же заказ отменяется, то товары возвращаются на склад, заказ удаляется и вновь отправляется уведомление в Kafka, что заказ отменен.
 
-Описание функций: Создание и отмена заказов, взаимодействие с сервисом Inventory через REST API, работа с MongoDB через motor, использование Kafka (producer) для отправки сообщений о статусах заказов.
+Описание функций: 
+Создание и отмена заказов, взаимодействие с сервисом Inventory через REST API, работа с MongoDB через motor, использование Kafka (producer) для отправки сообщений о статусах заказов.
 Данные заказа:
 
-order_id: PyObjectId
-order date: str
-products: List[Product]
-product_id: str
-quantity: int
-total_cost: float
+* order_id: PyObjectId
+* order date: str
+* products: List[Product]
+* product_id: str
+* quantity: int
+* total_cost: float
+  
 Inventory Service
 В данном сервисе можно создавать/редактировать/удалять продукты склада. Можно просматривать все имеющиеся на складе продукты (в любом диапазоне) и какие-нибудь конкретные по их уникальному ID.
 
-Описание функций: Аналог Product Service с дополнительными полями, CRUD операции, использование БД Postgresql+asyncpg.
+Описание функций: 
+Аналог Product Service с дополнительными полями, CRUD операции, использование БД Postgresql+asyncpg.
 Складской продукт состоит из:
 
 product_id: UUID
@@ -40,42 +49,43 @@ current_price: float
 Notification Service
 Основная функция сервиса забирать сообщения о статусах заказов из Kafka, но, соответственно, можно и просмотреть все полученные сообщения.
 
-Описание функций: Consumer Kafka, прием и сохранение сообщений о статусах заказов в MongoDB на движке motor.
+Описание функций: 
+Consumer Kafka, прием и сохранение сообщений о статусах заказов в MongoDB на движке motor.
 GraphQL Service
 Служит единой точкой входа для сервисов Product и Order, пока что только получение всех записей из таблиц.
 
 Описание функций: в качестве GraphQL используется библиотека Strawberry. Для тестирования сервиса необходимо перейти именно по адресу http://127.0.0.1:8000/graphql.
 Будет дорабатываться.
 
-Технологии
-FastAPI
-PostgreSQL + asyncpg
-MongoDB (motor)
-SQLAlchemy
-Alembic
-Kafka
-Docker-compose
-Docker
-Strawberry
-Установка и запуск проекта
-1. Клонирование репозитория
+## Технологии
+* FastAPI
+* PostgreSQL + asyncpg
+* MongoDB (motor)
+* SQLAlchemy
+* Alembic
+* Kafka
+* Docker-compose
+* Docker
+* Strawberry
+
+## Установка и запуск проекта
+### Клонирование репозитория
 git clone https://github.com/amooralis/Furniture-market.git
-2. Запуск контейнера
+### Запуск контейнера
 docker-compose up --build -d
-3. Настройка БД
+### Настройка БД
 Для создания таблиц для сервисов Product и Inventory используйте Alembic.
-
-docker-compose exec fast-api sh -c "cd /code/ProductService && alembic upgrade head"
+* docker-compose exec fast-api sh -c "cd /code/ProductService && alembic upgrade head"
+  
 Аналогично для Inventory:
-
-docker-compose exec fast-api sh -c "cd /code/InventoryService && alembic upgrade head"
-4. Тестирование
+* docker-compose exec fast-api sh -c "cd /code/InventoryService && alembic upgrade head"
+### Тестирование
 Используйте Postman или встроенный Swagger UI для тестирования API каждого сервиса.
 
-5. Завершение работы
+### Завершение работы
 Существует два варианта завершения работы контейнера:
 
-Для остановки процессов используйте команду:
+* Для остановки процессов используйте команду:
 docker-compose stop
-Если необходимо полностью очистить память или вы внесли какие-то изменения, то:
+* Если необходимо полностью очистить память или вы внесли какие-то изменения, то:
 docker-compose down
